@@ -15,7 +15,7 @@ extern int h_errno;
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 64
 #endif
-#define MAX_IO_TRIES 1024
+#define MAX_IO_TRIES 64
 
 void usage(char *progname)
 {
@@ -77,9 +77,9 @@ int main(int argc, char **argv)
     full_hname[sizeof(full_hname) - 1] = '\0';
 
     for (cp = full_hname; *cp; cp++)
-      if (isupper((int) *cp))
-        *cp = tolower((int) *cp);
-    
+	if (isupper((int) *cp))
+	    *cp = tolower((int) *cp);
+
     if (!isatty(fileno(stdin)))
 	setvbuf(stdin, 0, _IONBF, 0);
     if (!isatty(fileno(stdout)))
@@ -115,21 +115,25 @@ int main(int argc, char **argv)
     tries = 0;
     length = (size_t) packet.length;
     for (pos = 0; length > 0; length -= pos) {
-	if (tries <= MAX_IO_TRIES)
+	if (tries < MAX_IO_TRIES)
 	    tries++;
 	else {
-	    fprintf(stderr, "%s: IO failed while write AP_REQ msg\n", progname);
+	    fprintf(stderr, "%s: IO failed while write AP_REQ msg\n",
+		    progname);
 	    rv = 1;
 	    goto cleanup;
 	}
-	pos = fwrite((packet.data + pos), sizeof(char), length, output);
-        fflush(stdout);
+
+	pos =
+	    fwrite(((char *) packet.data + pos), sizeof(char), length,
+		   output);
+	fflush(output);
     }
 
   cleanup:
 
     krb5_free_data_contents(context, &packet);
-      
+
     if (auth_context) {
 	krb5_auth_con_setrcache(context, auth_context, NULL);
 	krb5_auth_con_free(context, auth_context);
