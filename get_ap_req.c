@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     FILE *output = stdout;
     size_t length, pos;
     int tries = 0;
-    char *progname = NULL;
+    char *cp, *progname = NULL;
     char *service = "HTTP";
     char *hostname;
     char full_hname[MAXHOSTNAMELEN];
@@ -76,7 +76,10 @@ int main(int argc, char **argv)
     strncpy(full_hname, host->h_name, sizeof(full_hname) - 1);
     full_hname[sizeof(full_hname) - 1] = '\0';
 
-
+    for (cp = full_hname; *cp; cp++)
+      if (isupper((int) *cp))
+        *cp = tolower((int) *cp);
+    
     if (!isatty(fileno(stdin)))
 	setvbuf(stdin, 0, _IONBF, 0);
     if (!isatty(fileno(stdout)))
@@ -115,16 +118,18 @@ int main(int argc, char **argv)
 	if (tries <= MAX_IO_TRIES)
 	    tries++;
 	else {
-	    fprintf(stderr, "%s: IO failed\n", progname);
+	    fprintf(stderr, "%s: IO failed while write AP_REQ msg\n", progname);
 	    rv = 1;
 	    goto cleanup;
 	}
 	pos = fwrite((packet.data + pos), sizeof(char), length, output);
+        fflush(stdout);
     }
 
-    fflush(stdout);
-
   cleanup:
+
+    krb5_free_data_contents(context, &packet);
+      
     if (auth_context) {
 	krb5_auth_con_setrcache(context, auth_context, NULL);
 	krb5_auth_con_free(context, auth_context);
