@@ -101,12 +101,18 @@ int main(int argc, char **argv)
 	goto cleanup;
     }
 
+    if ((retval = krb5_auth_con_init(context, &auth_context))) {
+	com_err(progname, retval, "while init auth_context");
+	rv = 1;
+	goto cleanup;
+    }
+
     inbuf.data = hostname;
     inbuf.length = strlen(hostname);
 
     if ((retval =
-	 krb5_mk_req(context, &auth_context, 0, service, full_hname,
-		     &inbuf, ccdef, &packet))) {
+	 krb5_mk_req(context, &auth_context, AP_OPTS_USE_SESSION_KEY,
+		     service, full_hname, &inbuf, ccdef, &packet))) {
 	com_err(progname, retval, "while preparing AP_REQ");
 	rv = 1;
 	goto cleanup;
@@ -130,9 +136,9 @@ int main(int argc, char **argv)
 	fflush(output);
     }
 
-  cleanup:
-
     krb5_free_data_contents(context, &packet);
+
+  cleanup:
 
     if (auth_context) {
 	krb5_auth_con_setrcache(context, auth_context, NULL);
