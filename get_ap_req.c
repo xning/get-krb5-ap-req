@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     if (context)
 	krb5_free_context(context);
 
-    if (output && output != stdout)
+    if (output && output != stdout && output != stderr && output != stdin )
 	fclose(output);
 
     exit(rv);
