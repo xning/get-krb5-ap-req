@@ -101,11 +101,13 @@ int main(int argc, char **argv)
 	goto cleanup;
     }
 
-    if ((retval = krb5_auth_con_init(context, &auth_context))) {
-	com_err(progname, retval, "while init auth_context");
-	rv = 1;
-	goto cleanup;
-    }
+    /*
+       if ((retval = krb5_auth_con_init(context, &auth_context))) {
+       com_err(progname, retval, "while init auth_context");
+       rv = 1;
+       goto cleanup;
+       }
+     */
 
     inbuf.data = hostname;
     inbuf.length = strlen(hostname);
@@ -148,7 +150,7 @@ int main(int argc, char **argv)
     if (context)
 	krb5_free_context(context);
 
-    if (output && output != stdout && output != stderr && output != stdin )
+    if (output && output != stdout && output != stderr && output != stdin)
 	fclose(output);
 
     exit(rv);
