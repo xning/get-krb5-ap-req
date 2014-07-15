@@ -137,6 +137,7 @@ int main(int argc, char **argv)
 	rv = 1;
 	goto cleanup;
     }
+    
 #if 0
     if ((retval =
 	 krb5_server_decrypt_ticket_keytab(context, keytab, NULL, ticket)))
