@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     struct hostent *host;
     FILE *output = stdout;
     size_t length, pos;
+    char *pos_ptr = NULL;
     int tries = 0;
     char *cp, *progname = NULL;
     char *service = "HTTP";
@@ -101,19 +102,26 @@ int main(int argc, char **argv)
 	goto cleanup;
     }
 
-    /*
-       if ((retval = krb5_auth_con_init(context, &auth_context))) {
-       com_err(progname, retval, "while init auth_context");
-       rv = 1;
-       goto cleanup;
-       }
-     */
+    if ((retval = krb5_auth_con_init(context, &auth_context))) {
+	com_err(progname, retval, "while init auth_context");
+	rv = 1;
+	goto cleanup;
+    }
+
+    if ((retval =
+	 krb5_auth_con_setflags(context, auth_context,
+				KRB5_AUTH_CONTEXT_DO_SEQUENCE |
+				KRB5_AUTH_CONTEXT_DO_TIME))) {
+	com_err(progname, retval, "while setting auth_context flags");
+	rv = 1;
+	goto cleanup;
+    }
 
     inbuf.data = hostname;
     inbuf.length = strlen(hostname);
 
     if ((retval =
-	 krb5_mk_req(context, &auth_context, AP_OPTS_USE_SESSION_KEY,
+	 krb5_mk_req(context, &auth_context, AP_OPTS_MUTUAL_REQUIRED,
 		     service, full_hname, &inbuf, ccdef, &packet))) {
 	com_err(progname, retval, "while preparing AP_REQ");
 	rv = 1;
@@ -122,7 +130,9 @@ int main(int argc, char **argv)
 
     tries = 0;
     length = (size_t) packet.length;
+    pos_ptr = (char *) packet.data;
     for (pos = 0; length > 0; length -= pos) {
+	pos_ptr += pos;
 	if (tries < MAX_IO_TRIES)
 	    tries++;
 	else {
@@ -131,10 +141,7 @@ int main(int argc, char **argv)
 	    rv = 1;
 	    goto cleanup;
 	}
-
-	pos =
-	    fwrite(((char *) packet.data + pos), sizeof(char), length,
-		   output);
+	pos = fwrite(pos_ptr, sizeof(char), length, output);
 	fflush(output);
     }
 
