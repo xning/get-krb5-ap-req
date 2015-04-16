@@ -44,7 +44,7 @@ While the bad news is that now we have no shell tools to process cts mode encryp
 
 ### How to build this program
 
-1. Pls install the follwing libs
+- Pls install the follwing libs
 
  - On RHEL-like systems
 
@@ -54,15 +54,31 @@ While the bad news is that now we have no shell tools to process cts mode encryp
 
      `sudo apt-get -y install libkrb5-dev comerr-dev`
 
+- Clone
+
+     `git clone https://github.com/xning/get-krb5-ap-req.git`
+  
 - Build
 
- - Enable debug if need
+ - Enter the source dir
  
+      `cd get-krb5-ap-req`
+
+ - Enable debug if need
+
     `gcc -ggdb -o get_ap_req.debug get_ap_req.c $(pkg-config --libs --cflags com_err) -I/usr/include/krb5/ -lkrb5`
     
  - As regular program
  
-    `gcc -O2 -o get_ap_req get_ap_req.c $(pkg-config --libs --cflags com_err) -I/usr/include/krb5/ -lkrb5`  
+    `gcc -O2 -o get_ap_req get_ap_req.c $(pkg-config --libs --cflags com_err) -I/usr/include/krb5/ -lkrb5`
+    
+ - Install
+
+    `install get_ap_req.debug DIR && chmod ugo+x DIR/get_ap_req.debug`
+
+    Or
+
+    `install get_ap_req DIR && chmod ugo+x DIR/get_ap_req.debug`
 
 ### Why not use the [GSSAPI](http://en.wikipedia.org/wiki/GSSAPI)?
 
